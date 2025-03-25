@@ -1,0 +1,41 @@
+name: Build and Release Chrome Extension
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node.js をセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: pnpm をセットアップ
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.5
+
+      - name: 依存関係をインストール
+        run: pnpm install --frozen-lockfile
+
+      - name: 拡張機能をビルド
+        run: pnpm build
+
+      - name: dist フォルダを ZIP 圧縮
+        run: zip -r chrome-extension.zip dist
+
+      - name: GitHub リリースを作成
+        uses: softprops/action-gh-release@v2
+        with:
+          files: chrome-extension.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
